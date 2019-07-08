@@ -22,7 +22,7 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 	// timestamps. %s will be replaced by the database and table name.
 	// The second column allows gets the server timestamp at the exact same
 	// time the query is run.
-	heartbeatQuery = "SELECT UNIX_TIMESTAMP(ts), UNIX_TIMESTAMP(NOW(6)), server_id from `%s`.`%s`"
+	heartbeatQuery = "SELECT UNIX_TIMESTAMP(create_time), UNIX_TIMESTAMP(NOW(6)), srouce from `%s`.`%s` order by id DESC limit 1"
 )
 
 var (
@@ -95,11 +95,11 @@ func (ScrapeHeartbeat) Scrape(ctx context.Context, db *sql.DB, ch chan<- prometh
 
 	var (
 		now, ts  sql.RawBytes
-		serverId int
+		serverID string
 	)
 
 	for heartbeatRows.Next() {
-		if err := heartbeatRows.Scan(&ts, &now, &serverId); err != nil {
+		if err := heartbeatRows.Scan(&ts, &now, &serverID); err != nil {
 			return err
 		}
 
@@ -113,19 +113,19 @@ func (ScrapeHeartbeat) Scrape(ctx context.Context, db *sql.DB, ch chan<- prometh
 			return err
 		}
 
-		serverId := strconv.Itoa(serverId)
+		// serverId := strconv.Itoa(serverId)
 
 		ch <- prometheus.MustNewConstMetric(
 			HeartbeatNowDesc,
 			prometheus.GaugeValue,
 			nowFloatVal,
-			serverId,
+			serverID,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			HeartbeatStoredDesc,
 			prometheus.GaugeValue,
 			tsFloatVal,
-			serverId,
+			serverID,
 		)
 	}
 
