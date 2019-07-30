@@ -32,7 +32,7 @@ const (
 	// timestamps. %s will be replaced by the database and table name.
 	// The second column allows gets the server timestamp at the exact same
 	// time the query is run.
-	heartbeatQuery = "SELECT UNIX_TIMESTAMP(create_time), UNIX_TIMESTAMP(NOW(6)), srouce from `%s`.`%s` order by id DESC limit 1"
+	heartbeatQuery = "SELECT UNIX_TIMESTAMP(create_time), UNIX_TIMESTAMP(NOW(6)), srouce from `%s`.`%s` order by create_time DESC limit 1"
 )
 
 var (
